@@ -236,11 +236,15 @@ LIVE_DATA = os.path.join(
     "live_weather_stream.json"
 )
 
+
 MODEL_PATH = os.path.join(
-    BASE_DIR,
-    "models",
-    "random_forest_landslide.pkl"
+    BASE_DIR, "models", "random_forest_landslide.pkl"
 )
+
+FEATURE_PATH = os.path.join(
+    BASE_DIR, "models", "landslide_features.pkl"
+)
+
 
 # ============================================================
 # SPARK SESSION (SAFE INITIALIZATION WITH FALLBACK)
@@ -268,12 +272,26 @@ def get_spark():
 
 @st.cache_resource
 def load_model():
-    if os.path.exists(MODEL_PATH):
-        try:
-            return joblib.load(MODEL_PATH)
-        except Exception:
-            return None
-    return None
+    if not os.path.exists(MODEL_PATH):
+        raise FileNotFoundError(
+            f"Model file not found: {MODEL_PATH}"
+        )
+
+    if not os.path.exists(FEATURE_PATH):
+        raise FileNotFoundError(
+            f"Feature file not found: {FEATURE_PATH}"
+        )
+
+    model = joblib.load(MODEL_PATH)
+    features = joblib.load(FEATURE_PATH)
+
+    if len(features) != 8:
+        raise ValueError(
+            f"Expected 8 model features, found {len(features)}"
+        )
+
+    return model, features
+
 
 # ============================================================
 # READ AND PROCESS LIVE WEATHER
@@ -369,81 +387,54 @@ def get_latest_weather():
 # MACHINE LEARNING PREDICTION
 # ============================================================
 
-def make_predictions(df):
-    model = load_model()
 
-    features = [
+def make_predictions(df):
+    model, features = load_model()
+    result = df.copy()
+
+    required_columns = [
         "latitude",
         "longitude",
-        "rainfall_mm",
+        "rainfall_event_day_mm",
+        "rainfall_3day_mm",
+        "rainfall_7day_mm",
         "temperature_c",
         "humidity_percent",
         "month"
     ]
 
-    result = df.copy()
+    # Do not substitute random or missing weather values.
+    missing = [c for c in required_columns if c not in result.columns]
+    if missing:
+        raise ValueError(
+            "Live weather is missing required model inputs: "
+            + ", ".join(missing)
+        )
 
-    if model is not None:
-        try:
-            X = df[features]
-            prediction = model.predict(X)
-            probability = model.predict_proba(X)[:, 1]
+    for column in required_columns:
+        result[column] = pd.to_numeric(
+            result[column], errors="coerce"
+        )
 
-            result["prediction"] = prediction
-            result["risk_probability"] = probability * 100
-            result["risk"] = result["prediction"].map({
-                0: "LOW RISK",
-                1: "LANDSLIDE RISK"
-            })
-            return result
-        except Exception:
-            pass
+    if result[required_columns].isna().any().any():
+        raise ValueError(
+            "Some live weather values are missing or invalid. "
+            "Wait for a complete collector update and refresh."
+        )
 
-    # Calibrated analytical fallback mirroring trained Random Forest boundary
-    # Trigger thresholds based on Geological Survey of India (GSI) Northeast landslide precipitation guidelines
-    def calc_rf_proxy(row):
-        score = 0.0
-        # Rainfall weighting (threshold 50mm critical slope saturation)
-        if row["rainfall_mm"] > 90:
-            score += 0.55
-        elif row["rainfall_mm"] > 55:
-            score += 0.35
-        elif row["rainfall_mm"] > 30:
-            score += 0.15
+    X = result[features]
+    predictions = model.predict(X)
+    probabilities = model.predict_proba(X)[:, 1]
 
-        # Humidity saturation
-        if row["humidity_percent"] > 88:
-            score += 0.20
-        elif row["humidity_percent"] > 75:
-            score += 0.10
-
-        # Terrain / High elevation proxy from latitude/longitude
-        if row["location"] in ["Gangtok", "Shillong", "Kohima", "Aizawl"]:
-            score += 0.22
-
-        # Monsoon seasonal modifier (May-Sept = peak)
-        if 5 <= row["month"] <= 9:
-            score += 0.08
-
-        prob = min(max(score * 100, 4.0), 96.5)
-        pred = 1 if prob >= 50.0 else 0
-        return pred, prob
-
-    preds = []
-    probs = []
-    for _, r in result.iterrows():
-        p, pr = calc_rf_proxy(r)
-        preds.append(p)
-        probs.append(pr)
-
-    result["prediction"] = preds
-    result["risk_probability"] = probs
+    result["prediction"] = predictions
+    result["risk_probability"] = probabilities * 100
     result["risk"] = result["prediction"].map({
         0: "LOW RISK",
         1: "LANDSLIDE RISK"
     })
 
     return result
+
 
 # ============================================================
 # PROCESS DATA

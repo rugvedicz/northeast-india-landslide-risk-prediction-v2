@@ -1,0 +1,16 @@
+{
+    "model": "Random Forest",
+    "features": [
+        "latitude",
+        "longitude",
+        "rainfall_event_day_mm",
+        "rainfall_3day_mm",
+        "rainfall_7day_mm",
+        "temperature_c",
+        "humidity_percent",
+        "month"
+    ],
+    "target": "landslide_risk",
+    "records": 502,
+    "warning": "Experimental dataset: comparison dates are not verified landslide-free observations. Not for official warnings."
+}

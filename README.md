@@ -1,195 +1,277 @@
-# Northeast India Landslide Risk Prediction
-A machine-learning project that estimates landslide risk using geographic, weather, and seasonal features. It compares Logistic Regression, Random Forest, and Gradient Boosting, with a Streamlit dashboard and saved model artifacts for the prediction workflow.
-Important: This is an educational/experimental prediction project, not an official early-warning system. Predictions should not be used as the sole basis for safety or emergency decisions.
+# Northeast India Landslide Risk Prediction 🌧️
 
-Table of Contents
-- Overview
-- Objectives
-- Features
-- Technology Stack
-- Workflow
-- Dataset and Input Features
-- Model Performance
-- Random Forest Confusion Matrix
-- Installation
-- Run the Application
-- Example Prediction
-- Limitations
-- Future Improvements
+A Big Data and Machine Learning project that estimates landslide risk across Northeast India using historical landslide records, geographical information, weather conditions, and seasonal patterns.
 
-## Overview
-Landslides are a significant natural hazard in Northeast India. This project explores the use of machine learning to estimate landslide risk from selected geographic, weather, and seasonal variables.
+The project combines historical data analysis, live weather collection, a Random Forest classification model, and a Streamlit dashboard to display weather conditions and estimated landslide risk for eight locations in Northeast India.
 
-The workflow combines a trained classification model, saved model artifacts, weather-stream data handling, and a Streamlit interface. PySpark is part of the project's data-processing/streaming technology stack.
+> **Disclaimer:** This is an educational and experimental project, not an official landslide early-warning system. Model outputs should not be used as the sole basis for safety or emergency decisions.
 
-## Objectives
-- Build a machine-learning prototype for landslide risk prediction.
-- Compare multiple classification algorithms using evaluation metrics.
-- Explore geographic, weather, and seasonal input features.
-- Present predictions through a dashboard.
-- Examine model feature importance to understand which inputs influence model splits.
+## 📌 Project Objectives
 
-## Features
-- Comparison of Logistic Regression, Random Forest, and Gradient Boosting.
-- Random Forest model artifact saved for reuse.
-- Geographic inputs: latitude and longitude.
-- Weather inputs: rainfall, temperature, and humidity.
-- Seasonal input: month.
-- Streamlit dashboard for prediction exploration.
-- JSON file used in the weather-stream workflow.
-- Northeast India location context, including Itanagar, Dispur, Agartala, Aizawl, Gangtok, Imphal, Kohima, and Shillong.
-Weather-data note: Describe the feed as live only if the current code retrieves fresh observations from a configured external source. If it reads a local JSON file or sample data, describe it as local weather-stream/sample data.
+- Analyze historical landslide records and weather-related features.
+- Collect current weather information for eight locations in Northeast India.
+- Process rainfall, temperature, humidity, and geographical data.
+- Train and evaluate Machine Learning classification models.
+- Compare Logistic Regression and Random Forest.
+- Display weather information and model predictions through an interactive Streamlit dashboard.
+- Demonstrate how Big Data processing and Machine Learning can be combined for environmental risk analysis.
 
-## Technology Stack
-Technology	Purpose
-Python	Main programming language
-scikit-learn	Model training and evaluation
-Random Forest	Best-performing model in the reported comparison
-Logistic Regression	Baseline classifier
-Gradient Boosting	Comparison classifier
-PySpark	Data processing / streaming workflow
-Streamlit	Interactive dashboard
-JSON	Local weather-stream data format
+## 🗺️ Locations Covered
 
-## Weather Data Integration
+The project monitors the following eight state capitals:
 
-This project uses the [Open-Meteo API](https://open-meteo.com/) to retrieve weather data for selected locations. Temperature, humidity, and rainfall data can be used as inputs for landslide risk prediction.
+- Itanagar — Arunachal Pradesh
+- Dispur — Assam
+- Agartala — Tripura
+- Aizawl — Mizoram
+- Gangtok — Sikkim
+- Imphal — Manipur
+- Kohima — Nagaland
+- Shillong — Meghalaya
 
-## Workflow
+## 🛠️ Technologies Used
 
-Geographic + weather + seasonal features
-(latitude, longitude, rainfall, temperature,
-humidity, month)
-                  |
-                  v
-          Input preparation
-                  |
-                  v
-       Trained classification model
-                  |
-                  v
-       Predicted class / risk score
-                  |
-                  v
-        Streamlit dashboard
-1. Prepare location and environmental inputs.
-2. Ensure input columns and order match the model's training features.
-3. Load the trained model and its feature metadata.
-4. Generate a prediction from the prepared input.
-5. Display the result in the dashboard.
-The precise meaning of each class, risk threshold, and score should be documented according to the implementation.
+| Technology | Purpose |
+|---|---|
+| Python | Main programming language |
+| Pandas | Data cleaning and manipulation |
+| NumPy | Numerical operations |
+| Scikit-learn | Machine Learning and model evaluation |
+| Random Forest | Main classification model |
+| Logistic Regression | Comparison model |
+| PySpark | Big Data processing workflow |
+| Open-Meteo API | Live weather data collection |
+| Streamlit | Interactive dashboard |
+| Joblib | Saving and loading trained model artifacts |
+| Git and GitHub | Version control and project hosting |
 
-## Dataset and Input Features
+## 📊 Features Used by the Model
 
-The model uses these six input features:
-Feature	Description
-latitude	Latitude of the selected location
-longitude	Longitude of the selected location
-rainfall_mm	Rainfall amount in millimetres
-temperature_c	Temperature in degrees Celsius
-humidity_percent	Relative humidity percentage
-month	Month number used to represent seasonal patterns
+The Random Forest model uses eight input features.
 
+| No. | Feature | Description |
+|---:|---|---|
+| 1 | `latitude` | Latitude of the geographical location |
+| 2 | `longitude` | Longitude of the geographical location |
+| 3 | `rainfall_event_day_mm` | Rainfall associated with the event day, in millimetres |
+| 4 | `rainfall_3day_mm` | Rainfall total over the preceding three days |
+| 5 | `rainfall_7day_mm` | Rainfall total over the preceding seven days |
+| 6 | `temperature_c` | Temperature in degrees Celsius |
+| 7 | `humidity_percent` | Relative humidity as a percentage |
+| 8 | `month` | Month of the year, representing seasonal patterns |
 
-Add the original dataset source, collection period, total row count, and class balance here before publishing. These details were not included in the evaluation output provided.
+These features help the model learn relationships between geographical conditions, weather variables, seasonal patterns, and the records in the training dataset.
 
-## Model Performance
-Three classification algorithms were evaluated on a reported test set of 101 samples.
+## 🧠 Dataset and Target Variable
 
-Model	Accuracy	Precision	Recall	F1-Score	ROC-AUC
-Logistic Regression	69.31%	65.57%	80.00%	72.07%	76.04%
-Random Forest	80.20%	77.78%	84.00%	80.77%	87.76%
-Gradient Boosting	74.26%	71.43%	80.00%	75.47%	85.29%
+The experimental dataset contains **502 records**:
 
+- 251 historically recorded landslide-event records.
+- 251 candidate comparison-date records.
 
-## Best-performing model
-Random Forest achieved the highest accuracy, F1-score, and ROC-AUC in this comparison. Its reported results were:
-- Accuracy: 80.20%
-- Precision: 77.78%
-- Recall: 84.00%
-- F1-score: 80.77%
-- ROC-AUC: 87.76%
-These are results on the reported test split. They do not guarantee the same performance on new locations, future weather, or real-world events.
-Random Forest Confusion Matrix
+The target variable is `landslide_risk`.
 
-	Predicted class 0	Predicted class 1
-Actual class 0	39	12
-Actual class 1	8	42
+| Label | Meaning |
+|---:|---|
+| `1` | Recorded landslide event |
+| `0` | Candidate comparison date |
 
+### What is a candidate comparison date?
 
-The model correctly classified 39 class 0 samples and 42 class 1 samples. It misclassified 12 class 0 samples as class 1 and 8 class 1 samples as class 0.
+A candidate comparison date is selected for comparison with recorded landslide events when no event is listed for that date in the dataset.
 
-If class 1 represents landslide risk, the 8 false negatives deserve particular attention because they are positive cases the model missed. Confirm the meaning of class 0 and class 1 in your dataset before publishing.
-Saved Model Artifacts
-The known model files are:
-- models/random_forest_landslide.pkl — trained Random Forest classifier.
-- models/landslide_features.pkl — feature metadata used by the prediction workflow.
-Only load pickle files from trusted sources because deserializing untrusted pickle files can execute code.
+It is important to understand that these dates are **not verified landslide-free observations**. An event may have occurred but not been included in the source catalogue. This limitation can affect model evaluation and the reliability of predictions.
 
-## Installation
-Prerequisites
-- Python installed and available from your terminal.
-- Git, if cloning from GitHub.
-- Project source files and the required model artifacts.
-- Any API key or environment configuration required by your weather-data integration.
-1. Clone the repository
-Replace the placeholders with your real GitHub repository URL and folder name.
-git clone <YOUR_REPOSITORY_URL>
-cd <YOUR_REPOSITORY_FOLDER>
-2. Create a virtual environment
-Windows PowerShell:
+## ⚙️ Machine Learning Approach
+
+The project follows these steps:
+
+1. **Data collection:** Obtain historical landslide records and weather information.
+2. **Data preparation:** Clean the dataset and prepare the required features.
+3. **Feature selection:** Use the eight geographical, rainfall, temperature, humidity, and seasonal features.
+4. **Model training:** Train Logistic Regression and Random Forest classifiers.
+5. **Model evaluation:** Compare the models using classification metrics and ROC-AUC.
+6. **Model saving:** Save the trained Random Forest model and feature list.
+7. **Live weather collection:** Retrieve current weather and recent rainfall information for the selected locations.
+8. **Prediction:** Pass the latest available weather features to the trained model.
+9. **Visualization:** Display the results through the Streamlit dashboard.
+
+## 📊 Model Evaluation
+
+We compared Logistic Regression and Random Forest using 101 test records.
+
+| Metric | Logistic Regression | Random Forest |
+|---|---:|---:|
+| Accuracy | 69.3% | **72.3%** |
+| Precision (Class 1) | 67.3% | 67.2% |
+| Recall (Class 1) | 74% | **86%** |
+| F1-Score (Class 1) | 70.5% | **75.4%** |
+| ROC-AUC | 0.776 | **0.809** |
+
+**Selected Model:** Random Forest performed better overall, with higher accuracy, recall, F1-score, and ROC-AUC.
+
+**Note:** Results are experimental because candidate comparison dates are not verified landslide-free observations. This project is not an official early-warning system.
+
+## 🌦️ Live Weather Collection
+
+The project uses the Open-Meteo API to collect weather information for all eight locations.
+
+The weather collector records information such as:
+
+- Timestamp
+- Location and state
+- Latitude and longitude
+- Current rainfall
+- Event-day rainfall field
+- Three-day rainfall total
+- Seven-day rainfall total
+- Temperature
+- Relative humidity
+- Month
+
+Records are appended to a JSON Lines file:
+
+`data/live_weather_stream.json`
+
+The collector is designed to run repeatedly and add new weather records at regular intervals.
+
+## 📈 Streamlit Dashboard
+
+The dashboard provides a visual interface for examining the project's outputs. Depending on the available data, it includes:
+
+- A map showing the monitored locations
+- Location-wise weather information
+- Weather and risk metrics
+- Charts for comparing conditions
+- A location inspector
+- Estimated landslide-risk predictions
+
+The dashboard connects the data-collection and prediction workflow to an interface that is easier to understand than raw data or model output.
+
+## 📁 Project Structure
+
+```text
+landslide-risk-prediction/
+│
+├── data/
+│   ├── processed/
+│   │   └── landslide_dataset.csv
+│   ├── raw/
+│   │   ├── Global_Landslide_Catalog_Export_rows.csv
+│   │   └── northeast_landslide_events.csv
+│   └── live_weather_stream.json
+│
+├── models/
+│   ├── landslide_features.pkl
+│   ├── model_metadata.json
+│   └── random_forest_landslide.pkl
+│
+├── notebooks/
+│   ├── models/
+│   ├── landslide_events_with_weather.csv
+│   ├── landslide_ml.ipynb
+│   └── northeast_landslide_events_clean.csv
+│
+├── app.py
+├── live_weather_collector.py
+├── live_weather_prediction.py
+├── README.md
+└── .gitignore
+```
+
+*This is the intended project structure; adjust the file list to match the files actually included in your GitHub repository. Do not upload virtual environments, API credentials, or unnecessary generated files.*
+
+## 💻 Installation and Setup
+
+### 1. Clone the repository
+
+```bash
+git clone <YOUR_GITHUB_REPOSITORY_URL>
+cd landslide-risk-prediction
+```
+
+Replace the placeholder with your actual GitHub repository URL.
+
+### 2. Create a virtual environment
+
+```bash
 python -m venv .venv
+```
+
+Activate it on Windows PowerShell:
+
+```powershell
 .\.venv\Scripts\Activate.ps1
-Windows Command Prompt:
-python -m venv .venv
-.venv\Scripts\activate.bat
-Linux / macOS:
-python3 -m venv .venv
-source .venv/bin/activate
-3. Install dependencies
-If your repository includes requirements.txt:
-python -m pip install --upgrade pip
+```
+
+### 3. Install dependencies
+
+If the repository includes a `requirements.txt` file:
+
+```bash
 pip install -r requirements.txt
-If it does not, create a requirements file from the packages actually imported by your project. The known stack includes scikit-learn, streamlit, and pyspark; other dependencies may be needed depending on your code. Confirm versions in your working environment rather than assuming these are the complete list.
-Run the Application
-If the Streamlit entry-point file is named app.py, run:
+```
+
+Make sure the installed package versions are compatible with the saved model.
+
+### 4. Start the live weather collector
+
+Open a terminal and run:
+
+```bash
+python live_weather_collector.py
+```
+
+Keep the collector running so that it can continue collecting weather records.
+
+### 5. Start the Streamlit dashboard
+
+Open another terminal in the project directory, activate the same environment, and run:
+
+```bash
 streamlit run app.py
-Replace app.py with the actual filename if it differs. Streamlit prints a local URL in the terminal that you can open in a browser.
+```
 
-If PySpark processing runs as a separate script, follow the command and arguments defined by that script.
-Example Prediction
-A previously recorded example for Shillong used the following inputs:
-Input	Value
-Location	Shillong
-Temperature	20.5 °C
-Humidity	83%
-Rainfall	0 mm
-Month	9
-Recorded model output	Approximately 56% risk
+Streamlit will provide a local URL in the terminal. Open that URL in your browser to access the dashboard.
 
+## 🔍 Limitations
 
-This is an illustrative output from the project, not a verified real-world probability or an official risk classification. Confirm that this example was produced by the same saved model and preprocessing pipeline used in the evaluation table.
-## Limitations
-- Results depend on training-data quality, coverage, class balance, and the evaluation method.
-- Six features cannot capture every factor related to landslides, such as slope, elevation, geology, soil, drainage, and land-use changes.
-- A model score should not be interpreted as a calibrated probability unless calibration and validation support that interpretation.
-- Weather observations may be incomplete, delayed, or different from conditions at a specific slope.
-- The model should not be used as the sole basis for public warnings or emergency decisions.
+- The dataset is experimental and relatively small.
+- Candidate comparison dates are not confirmed landslide-free observations.
+- Missing historical events can introduce label errors.
+- Weather conditions alone cannot capture every factor affecting landslides, such as slope, soil properties, geology, drainage, and land use.
+- Model scores are not necessarily calibrated probabilities of a real landslide occurring.
+- Live predictions depend on weather API availability, data freshness, and correct feature preparation.
+- The model requires additional validation across different locations and time periods.
 
-## Future Improvements
-- Evaluate with geographically and temporally independent test data.
-- Add reliable terrain, elevation, soil, and land-cover features.
-- Track precision, recall, F1-score, ROC-AUC, and false negatives.
-- Calibrate probability outputs and document the risk thresholds.
-- Add reliable weather-source integration, timestamps, and error handling if not already present.
-- Add an interactive map and historical risk visualizations.
-- Add automated tests, input validation, logging, and model-version tracking.
-- Document dataset sources, licenses, and limitations.
+For these reasons, this application should be treated as an academic demonstration rather than an operational disaster-warning service.
 
+## 🚀 Future Improvements
 
-License
-No license has been specified. Add a LICENSE file and identify the selected license here before permitting reuse or redistribution.
-Author
-Rugvedi Khandekar
-GitHub: Your GitHub Profile
-LinkedIn: Your LinkedIn Profile
+- Expand the dataset with verified landslide and non-landslide observations.
+- Add geological, elevation, slope, and soil-related features.
+- Evaluate the model using time-based and location-based validation.
+- Improve data quality and monitor missing or outdated weather records.
+- Explore distributed data processing for larger datasets.
+- Improve prediction calibration and report uncertainty.
+- Integrate validated information from reliable geological and disaster-management sources.
+
+## 🎓 Project Significance
+
+This project demonstrates the integration of Big Data concepts, live weather data collection, data preprocessing, Machine Learning, and interactive visualization for an environmental risk-analysis use case.
+
+It provides a foundation for further research into how historical and real-time data can help researchers understand conditions associated with landslide events.
+
+## 👩‍💻 Author
+
+**Rugvedi Khandekar**
+**Chandani Yadav**
+**Shinjinee Biswas**
+
+B.Tech — Artificial Intelligence and Machine Learning
+
+St. John College of Engineering and Management
+
+---
+
+*Developed as an academic Big Data and Machine Learning project.*

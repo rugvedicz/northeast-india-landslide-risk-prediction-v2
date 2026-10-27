@@ -1,12 +1,14 @@
+
 import requests
 import json
 import time
 from datetime import datetime
 import os
 
-
-OUTPUT_FILE = "data/live_weather_stream.json"
-
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_FILE = os.path.join(
+    BASE_DIR, "data", "live_weather_stream.json"
+)
 
 locations = {
     "Itanagar": {
@@ -51,70 +53,103 @@ locations = {
     }
 }
 
+os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
 
-# Make sure data folder exists
-os.makedirs("data", exist_ok=True)
-
+session = requests.Session()
 
 while True:
-
     for location_name, location_data in locations.items():
-
-        params = {
-            "latitude": location_data["latitude"],
-            "longitude": location_data["longitude"],
-            "current": "temperature_2m,relative_humidity_2m,precipitation",
-            "timezone": "Asia/Kolkata"
-        }
+        latitude = location_data["latitude"]
+        longitude = location_data["longitude"]
 
         try:
-
-            response = requests.get(
+            # Current weather
+            current_response = session.get(
                 "https://api.open-meteo.com/v1/forecast",
-                params=params,
-                timeout=15
+                params={
+                    "latitude": latitude,
+                    "longitude": longitude,
+                    "current": (
+                        "temperature_2m,"
+                        "relative_humidity_2m,"
+                        "precipitation"
+                    ),
+                    "timezone": "Asia/Kolkata"
+                },
+                timeout=20
             )
+            current_response.raise_for_status()
+            current = current_response.json()["current"]
 
-            response.raise_for_status()
+            # Recent daily rainfall
+            history_response = session.get(
+                "https://api.open-meteo.com/v1/forecast",
+                params={
+                    "latitude": latitude,
+                    "longitude": longitude,
+                    "daily": "precipitation_sum",
+                    "past_days": 7,
+                    "forecast_days": 1,
+                    "timezone": "Asia/Kolkata"
+                },
+                timeout=20
+            )
+            history_response.raise_for_status()
+            daily = history_response.json()["daily"]
 
-            weather = response.json()["current"]
+            today = datetime.now().date().isoformat()
+
+            # Exclude today's incomplete daily total.
+            completed_rain = [
+                value
+                for date, value in zip(
+                    daily["time"],
+                    daily["precipitation_sum"]
+                )
+                if date < today and value is not None
+            ]
+
+            if len(completed_rain) < 7:
+                raise ValueError(
+                    "Not enough completed daily rainfall values"
+                )
+
+            rainfall_3day = sum(completed_rain[-3:])
+            rainfall_7day = sum(completed_rain[-7:])
+
+            now = datetime.now()
 
             record = {
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": now.isoformat(),
                 "location": location_name,
                 "state": location_data["state"],
-                "latitude": location_data["latitude"],
-                "longitude": location_data["longitude"],
-                "rainfall_mm": weather["precipitation"],
-                "temperature_c": weather["temperature_2m"],
-                "humidity_percent": weather["relative_humidity_2m"],
-                "month": datetime.now().month
+                "latitude": latitude,
+                "longitude": longitude,
+                "rainfall_mm": current["precipitation"],
+                "rainfall_event_day_mm": current["precipitation"],
+                "rainfall_3day_mm": rainfall_3day,
+                "rainfall_7day_mm": rainfall_7day,
+                "temperature_c": current["temperature_2m"],
+                "humidity_percent": current["relative_humidity_2m"],
+                "month": now.month
             }
 
             with open(
-                OUTPUT_FILE,
-                "a",
-                encoding="utf-8"
-            ) as f:
-
-                f.write(
-                    json.dumps(record) + "\n"
-                )
+                OUTPUT_FILE, "a", encoding="utf-8"
+            ) as file:
+                file.write(json.dumps(record) + "\n")
 
             print(
-                f"✅ {location_name}, "
-                f"{location_data['state']} | "
-                f"Temp: {weather['temperature_2m']}°C | "
-                f"Humidity: {weather['relative_humidity_2m']}% | "
-                f"Rainfall: {weather['precipitation']} mm"
+                f"OK {location_name} | "
+                f"Temp: {current['temperature_2m']} C | "
+                f"Humidity: {current['relative_humidity_2m']}% | "
+                f"Current precipitation: {current['precipitation']} mm | "
+                f"3-day rain: {rainfall_3day:.1f} mm | "
+                f"7-day rain: {rainfall_7day:.1f} mm"
             )
 
-        except Exception as e:
+        except Exception as error:
+            print(f"Error for {location_name}: {error}")
 
-            print(
-                f"❌ Error for {location_name}: {e}"
-            )
-
-    print("\n⏳ Waiting 10 minutes...\n")
-
+    print("\nWaiting 10 minutes...\n")
     time.sleep(600)
