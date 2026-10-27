@@ -5,6 +5,16 @@ A Big Data and Machine Learning project that estimates landslide risk across Nor
 The project combines historical data analysis, live weather collection, a Random Forest classification model, and a Streamlit dashboard to display weather conditions and estimated landslide risk for eight locations in Northeast India.
 
 > **Disclaimer:** This is an educational and experimental project, not an official landslide early-warning system. Model outputs should not be used as the sole basis for safety or emergency decisions.
+## 📸 Project Screenshots
+
+### 1. Real-Time Landslide Prediction Dashboard
+![Real-Time Landslide Prediction Dashboard](Screenshot%202026-10-27%20163056.png)
+
+### 2. Northeast India Geospatial Risk Monitor
+![Northeast India Geospatial Risk Monitor](Screenshot%202026-10-27%20163118.png)
+
+### 3. Live Weather & Landslide Prediction
+![Live Weather and Landslide Prediction](Screenshot%202026-10-27%20163138.png)
 
 ## 📌 Project Objectives
 
