@@ -262,10 +262,10 @@ This project demonstrates the integration of Big Data concepts, live weather dat
 
 It provides a foundation for further research into how historical and real-time data can help researchers understand conditions associated with landslide events.
 
-## 👩‍💻 Author
+## 👩‍💻 Authors
 
-**Rugvedi Khandekar**
-**Chandani Yadav**
+**Rugvedi Khandekar** ,
+**Chandani Yadav** ,
 **Shinjinee Biswas**
 
 B.Tech — Artificial Intelligence and Machine Learning
